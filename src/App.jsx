@@ -1,77 +1,73 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const initialItems = ['Apples', 'Bananas', 'Cherries', 'Dates'];
+// 3. Custom Hook for localStorage
+function useLocalStorageState(key, initialState) {
+  const [value, setValue] = useState(() => {
+    return localStorage.getItem(key) || initialState;
+  });
 
-const Header = () => {
-  return <h1>My Grocery List & Counter</h1>;
-};
+  useEffect(() => {
+    localStorage.setItem(key, value);
+  }, [key, value]);
 
-const Search = ({ searchTerm, onSearch }) => {
+  return [value, setValue];
+}
+
+function App() {
+  const [username, setUsername] = useLocalStorageState('username', '');
+  const [favoriteColor, setFavoriteColor] = useLocalStorageState('favoriteColor', '');
+
+  const handleUsernameChange = (event) => {
+    setUsername(event.target.value);
+  };
+
+  const handleColorChange = (event) => {
+    setFavoriteColor(event.target.value);
+  };
+
   return (
-    <div style={{ marginBottom: '12px' }}>
-      <label htmlFor="search">Search: </label>
+    <div style={{ padding: '20px' }}>
+      <h1>Welcome!</h1>
+      
+      {/* Username input using composed children */}
+      <InputWithLabel
+        id="username"
+        value={username}
+        onInputChange={handleUsernameChange}
+      >
+        Username:
+      </InputWithLabel>
+      
+      <p>Hello, {username || 'Guest'}!</p>
+
+      {/* 4. Bonus: Favorite Color input */}
+      <div style={{ marginTop: '15px' }}>
+        <InputWithLabel
+          id="favoriteColor"
+          value={favoriteColor}
+          onInputChange={handleColorChange}
+        >
+          Favorite Color:
+        </InputWithLabel>
+        <p>Your favorite color is: <span style={{ color: favoriteColor || 'black', fontWeight: 'bold' }}>{favoriteColor || 'None'}</span></p>
+      </div>
+    </div>
+  );
+}
+
+// 5. Composing components with children and React Fragments
+function InputWithLabel(props) {
+  return (
+    <>
+      <label htmlFor={props.id} style={{ marginRight: '8px' }}>{props.children}</label>
       <input
-        id="search"
+        id={props.id}
         type="text"
-        value={searchTerm}
-        onChange={onSearch}
+        value={props.value}
+        onChange={props.onInputChange}
       />
-    </div>
+    </>
   );
-};
-
-const List = ({ items }) => {
-  return (
-    <ul>
-      {items.map((item, index) => (
-        <li key={index}>{item}</li>
-      ))}
-    </ul>
-  );
-};
-
-const Counter = ({ title }) => {
-  const [count, setCount] = useState(0);
-
-  const handleIncrease = () => {
-    setCount(count + 1);
-  };
-
-  const handleReset = () => {
-    setCount(0);
-  };
-
-  return (
-    <div>
-      <h2>{title}</h2>
-      <p>Count: {count}</p>
-      <button onClick={handleIncrease}>Increase</button>
-      <button onClick={handleReset} style={{ marginLeft: '8px' }}>Reset</button>
-    </div>
-  );
-};
-
-const App = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
-  const filteredItems = initialItems.filter((item) =>
-    item.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  return (
-    <div>
-      <Header />
-      <Search searchTerm={searchTerm} onSearch={handleSearch} />
-      <List items={filteredItems} />
-      <p>Searching for: {searchTerm}</p>
-      <hr />
-      <Counter title="Interactive Counter" />
-    </div>
-  );
-};
+}
 
 export default App;
